@@ -10,3 +10,9 @@ export interface ConfigJson {
     DATA_DIR?: string;
     FORCE_ENCOUNTER_TYPE?: string;
 }
+
+export interface Event {
+    name: string;
+    offsetHr: number;
+    intervalHr: number;
+}

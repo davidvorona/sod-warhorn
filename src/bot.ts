@@ -2,7 +2,7 @@ import { Client, IntentsBitField, Events, EmbedBuilder, REST, Routes } from "dis
 import { DateTime, Duration } from "luxon";
 import path from "path";
 import { parseJson, readFile } from "./util";
-import { AuthJson, ConfigJson } from "./types";
+import { AuthJson, ConfigJson, Event } from "./types";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const commands = require("../config/commands");
 
@@ -13,12 +13,6 @@ const { CLIENT_ID } = parseJson(readFile(configPath)) as ConfigJson;
 
 
 const rest = new REST().setToken(TOKEN);
-
-interface Event {
-    name: string;
-    offsetHr: number;
-    intervalHr: number;
-}
 
 const events: Event[] = [
     {
@@ -52,7 +46,7 @@ class HornSounder {
         const timeToEvent = this.timeToNextEvent();
         console.info(this.name, "in", timeToEvent.toHuman({ unitDisplay: "short" }));
         const soundHorn = this.soundHorn.bind(this);
-        this.timeout = setTimeout(soundHorn, timeToEvent.toMillis());
+        this.timeout = setTimeout(soundHorn, 10000/*timeToEvent.toMillis()*/);
     }
 
     private timeToNextEvent(): Duration {
@@ -75,7 +69,8 @@ class HornSounder {
     private async soundHorn() {
         const embed = new EmbedBuilder()
             .setColor(0x0099FF)
-            .setDescription(`**${this.name}** is starting!`);
+            .setDescription(`**${this.name}** is starting!`)
+            .setThumbnail("https://raw.githubusercontent.com/davidvorona/sod-warhorn/master/static/alliance.png");
         const rallyTroops = client.guilds.cache.map(async (g) => {
             await g.systemChannel?.send({ embeds: [embed]});
         });
