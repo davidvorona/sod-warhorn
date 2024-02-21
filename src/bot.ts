@@ -43,7 +43,9 @@ class HornSounder {
 
     intervalHr: number;
 
-    timeout: unknown;
+    timeout1: unknown;
+
+    timeout2: unknown;
 
     lengthHr: number;
     
@@ -68,10 +70,16 @@ class HornSounder {
         // Calculate the duration between now and the hour of the event
         const timeToEvent = eventTime.diffNow(["hours", "minutes", "seconds", "milliseconds"]);
         console.info(this.name, "in", timeToEvent.toHuman({ unitDisplay: "short" }));
-        const soundHorn = this.soundHorn.bind(this);
         // Sound the horns 15 minutes before the event starts
-        const timeToHornSound = timeToEvent.minus({ minutes: 15 }).toMillis();
-        this.timeout = setTimeout(() => soundHorn(eventTime), timeToHornSound);
+        const timeToSoundWarn = timeToEvent.minus({ minutes: 15 }).toMillis();
+        if (timeToSoundWarn >= 0) {
+            const messageText = `**${this.name}** is starting soon!`;
+            const soundWarn = this.soundWarn.bind(this);
+            this.timeout1 = setTimeout(() => soundWarn(eventTime, messageText), timeToSoundWarn);
+        }
+        // Sound the horns when the event starts
+        const soundHorn = this.soundHorn.bind(this);
+        this.timeout2 = setTimeout(() => soundHorn(eventTime), timeToEvent.toMillis());
     }
 
     private getTimeOfNextEvent(): DateTime {
@@ -88,33 +96,37 @@ class HornSounder {
         return timeString + " (ST)";
     }
 
-    private createMessageEmbed(time: DateTime): EmbedBuilder {
+    private async sendMessages(time: DateTime, text?: string) {
         const startsAt = HornSounder.decorateTimeString(time.toLocaleString(DateTime.TIME_SIMPLE));
         const endsAt = HornSounder.decorateTimeString(
             time.plus({ hours: this.lengthHr }).toLocaleString(DateTime.TIME_SIMPLE)
         );
-        return new EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setColor(this.color)
-            .setDescription(`**${this.name}** is starting soon!`)
+            .setDescription(text || `**${this.name}** is starting!`)
             .setThumbnail("https://raw.githubusercontent.com/davidvorona/sod-warhorn/master/static/icon.png")
             .addFields(
                 { name: "Region", value: this.region },
                 { name: "Starts at", value: startsAt, inline: true },
                 { name: "Ends at", value: endsAt, inline: true },
             );
-    }
-
-    private async soundHorn(eventTime: DateTime) {
-        const embed = this.createMessageEmbed(eventTime);
-        const rallyTroops = this.client.guilds.cache.map(async (g) => {
+        const sendMessages = this.client.guilds.cache.map(async (g) => {
             const channel = g.channels.cache.find(c => c.id === guildChannels[g.id]) || g.systemChannel;
             if (!channel || !(channel instanceof TextChannel)) {
-                console.warn("Invalid channel", channel?.id, `for guild '${g.id}'`);
+                console.warn(`Invalid channel '${channel?.id}'`, `for guild '${g.id}'`);
                 return;
             }
             await channel?.send({ embeds: [embed] });
         });
-        await Promise.all(rallyTroops);
+        await Promise.all(sendMessages);
+    }
+
+    private async soundWarn(eventTime: DateTime, messageText: string) {
+        await this.sendMessages(eventTime, messageText);
+    }
+
+    private async soundHorn(eventTime: DateTime,) {
+        await this.sendMessages(eventTime);
         this.schedule();
     }
 }
