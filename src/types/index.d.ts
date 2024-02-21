@@ -15,4 +15,7 @@ export interface Event {
     name: string;
     offsetHr: number;
     intervalHr: number;
+    lengthHr: number;
+    region: string;
+    color: number;
 }
