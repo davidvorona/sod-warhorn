@@ -46,7 +46,7 @@ class HornSounder {
         const timeToEvent = this.timeToNextEvent();
         console.info(this.name, "in", timeToEvent.toHuman({ unitDisplay: "short" }));
         const soundHorn = this.soundHorn.bind(this);
-        this.timeout = setTimeout(soundHorn, 10000/*timeToEvent.toMillis()*/);
+        this.timeout = setTimeout(soundHorn, timeToEvent.toMillis());
     }
 
     private timeToNextEvent(): Duration {
@@ -70,7 +70,7 @@ class HornSounder {
         const embed = new EmbedBuilder()
             .setColor(0x0099FF)
             .setDescription(`**${this.name}** is starting!`)
-            .setThumbnail("https://raw.githubusercontent.com/davidvorona/sod-warhorn/master/static/alliance.png");
+            .setThumbnail("https://raw.githubusercontent.com/davidvorona/sod-warhorn/master/static/icon.png");
         const rallyTroops = client.guilds.cache.map(async (g) => {
             await g.systemChannel?.send({ embeds: [embed]});
         });
