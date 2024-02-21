@@ -86,7 +86,8 @@ class HornSounder {
         // Get the current time
         const time = DateTime.now();
         // Get the remaining hours until next event then adjust by the offset
-        const hoursToEvent = this.intervalHr - (time.hour % this.intervalHr) + this.offsetHr;
+        const remainder = this.intervalHr - (time.hour % this.intervalHr) + this.offsetHr;
+        const hoursToEvent = remainder > this.intervalHr ? remainder - this.intervalHr : remainder;
         const hourOfEvent = time.hour + hoursToEvent;
         // Return a DateTime object set to the hour of the event
         return DateTime.now().set({ hour: hourOfEvent, minute: 0, second: 0, millisecond: 0 });
