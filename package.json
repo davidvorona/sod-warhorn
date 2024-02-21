@@ -1,0 +1,27 @@
+{
+  "name": "sod-war-horn",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "prestart": "npm run build",
+    "start": "node dist/bot.js",
+    "start-dev": "DEV_MODE=true node dist/bot.js"
+  },
+  "author": "David Vorona",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "luxon": "^3.4.4"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.4.2",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
