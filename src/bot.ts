@@ -53,7 +53,7 @@ class HornSounder {
 
     client: Client;
 
-    constructor(client: Client, event: Event, ) {
+    constructor(client: Client, event: Event) {
         this.client = client;
         this.name = event.name;
         this.offsetHr = event.offsetHr;
