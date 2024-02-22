@@ -85,7 +85,7 @@ class HornSounder {
         }
         // Sound the horns when the event starts
         const soundHorn = this.soundHorn.bind(this);
-        this.timeout2 = setTimeout(() => soundHorn(eventTime), /*timeToEvent.toMillis()*/10000);
+        this.timeout2 = setTimeout(() => soundHorn(eventTime), timeToEvent.toMillis());
     }
 
     private getTimeOfNextEvent(): DateTime {
