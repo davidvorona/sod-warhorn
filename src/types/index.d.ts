@@ -7,8 +7,7 @@ export interface AuthJson {
 export interface ConfigJson {
     CLIENT_ID: string;
     GUILD_ID?: string;
-    DATA_DIR?: string;
-    FORCE_ENCOUNTER_TYPE?: string;
+    DATA_DIR: string;
 }
 
 export interface Event {

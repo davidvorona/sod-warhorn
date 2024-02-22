@@ -3,19 +3,25 @@ import { DateTime, Settings } from "luxon";
 import path from "path";
 import { parseJson, readFile } from "./util";
 import { AuthJson, ConfigJson, Event } from "./types";
+import Storage from "./storage";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const commands = require("../config/commands");
 
 const authPath = path.join(__dirname, "../config/auth.json");
 const { TOKEN } = parseJson(readFile(authPath)) as AuthJson;
 const configPath = path.join(__dirname, "../config/config.json");
-const { CLIENT_ID } = parseJson(readFile(configPath)) as ConfigJson;
+const { CLIENT_ID, DATA_DIR } = parseJson(readFile(configPath)) as ConfigJson;
 
 // Crusader Strike ST = Mountain Standard Time
 Settings.defaultZone = "America/Denver";
 
 // Initialize Discord REST client
 const rest = new REST().setToken(TOKEN);
+
+// Note: All developers must add an empty data/ directory at root
+Storage.validateDataDir(DATA_DIR);
+
+const storage = new Storage("channels.json");
 
 const events: Event[] = [
     {
@@ -79,7 +85,7 @@ class HornSounder {
         }
         // Sound the horns when the event starts
         const soundHorn = this.soundHorn.bind(this);
-        this.timeout2 = setTimeout(() => soundHorn(eventTime), timeToEvent.toMillis());
+        this.timeout2 = setTimeout(() => soundHorn(eventTime), /*timeToEvent.toMillis()*/10000);
     }
 
     private getTimeOfNextEvent(): DateTime {
@@ -111,8 +117,9 @@ class HornSounder {
                 { name: "Starts at", value: startsAt, inline: true },
                 { name: "Ends at", value: endsAt, inline: true },
             );
+        const guildChannels = storage.read();
         const sendMessages = this.client.guilds.cache.map(async (g) => {
-            const channel = g.channels.cache.find(c => c.id === guildChannels[g.id]) || g.systemChannel;
+            const channel = g.channels.cache.find(c => c.id === guildChannels[g.id]);
             if (!channel || !(channel instanceof TextChannel)) {
                 console.warn(`Invalid channel '${channel?.id}'`, `for guild '${g.id}'`);
                 return;
@@ -131,8 +138,6 @@ class HornSounder {
         this.schedule();
     }
 }
-
-const guildChannels: Record<string, string> = {};
 
 const client = new Client({
     intents: [
@@ -183,7 +188,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 return;
             }
             // Save the channel ID in the guildsChannels map
-            guildChannels[interaction.guildId] = interaction.channelId;
+            storage.add(interaction.guildId, interaction.channelId);
             // Send the success message
             await interaction.reply({
                 content: "Warhorn will now sound in this channel.",
